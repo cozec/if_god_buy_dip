@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>连上帝也无法战胜定投（DCA）— 复刻报告</title>
+<style>
+  :root { --ink:#1a1a1a; --muted:#666; --line:#e3e3e3; --accent:#1f77b4; --red:#d62728; --green:#2ca02c; --bg:#fafafa; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+         line-height:1.85; font-size:17px; }
+  .wrap { max-width:920px; margin:0 auto; padding:48px 24px 96px; }
+  header h1 { font-size:34px; line-height:1.3; margin:0 0 8px; letter-spacing:.5px; }
+  header .sub { color:var(--muted); font-size:15px; margin-bottom:4px; }
+  header .keypoint { font-size:18px; line-height:1.7; margin:14px 0 4px; padding:14px 18px;
+                     background:linear-gradient(180deg,#fff6d6,#ffefb0); color:#3a2f00;
+                     border:1px solid #f3d97a; border-left:5px solid #f1c40f; border-radius:8px; }
+  header .keypoint strong { color:#000; background:#ffe27a; padding:0 3px; border-radius:3px; }
+  header .src { color:var(--muted); font-size:13px; border-top:1px solid var(--line);
+                margin-top:18px; padding-top:14px; }
+  h2 { font-size:24px; margin:48px 0 12px; padding-top:12px; border-top:2px solid var(--line); }
+  p { margin:12px 0; }
+  a { color:var(--accent); }
+  strong { color:#000; }
+  .lead { font-size:19px; color:#333; }
+  .kbd { font-family:ui-monospace,Menlo,Consolas,monospace; background:#f0f0f0;
+         border:1px solid #ddd; border-radius:4px; padding:1px 6px; font-size:12px; }
+  figure { margin:24px 0 36px; }
+  .chart-img { display:block; width:100%; height:auto; background:#fff;
+               border:1px solid var(--line); border-radius:10px;
+               box-shadow:0 1px 4px rgba(0,0,0,.05); }
+  figcaption { font-size:14px; color:var(--muted); margin-top:8px; text-align:center; }
+  figcaption b { color:#333; }
+  .callout { background:#fff; border-left:4px solid var(--accent); border-radius:0 8px 8px 0;
+             padding:14px 18px; margin:20px 0; }
+  .callout.warn { border-left-color:var(--red); }
+  .callout.highlight { background:linear-gradient(180deg,#fff6d6,#ffefb0); color:#3a2f00;
+                       border:1px solid #f3d97a; border-left:5px solid #f1c40f; }
+  .callout.highlight strong { color:#000; background:#ffe27a; padding:0 3px; border-radius:3px; }
+  table { width:100%; border-collapse:collapse; margin:18px 0; font-size:15px; }
+  th,td { border-bottom:1px solid var(--line); padding:9px 10px; text-align:right; }
+  th:first-child,td:first-child { text-align:left; }
+  thead th { border-bottom:2px solid #ccc; color:#333; }
+  .lose { color:var(--red); font-weight:600; }
+  footer { margin-top:64px; padding-top:20px; border-top:1px solid var(--line);
+           color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>连上帝也无法战胜定投</h1>
+  <div class="sub">复刻 Nick Maggiulli《Even God Couldn’t Beat Dollar-Cost Averaging》（Of Dollars And Data）</div>
+  <div class="keypoint">核心结论：即便拥有「完美抄底」的上帝视角，<strong>抄底策略在超过 70% 的 40 年区间里依然跑输无脑定投</strong>。</div>
+  <div class="src">数据来源：Robert Shiller 月度数据集（标普综合指数价格、股息、CPI），构建为<strong>实际总回报指数</strong>（股息再投资、经 CPI 通胀调整），覆盖 1871–2023。每月投入 $100，持有至 40 年期末，永不卖出。本页所有图表均由本项目 <span class="kbd">python main.py</span> 生成于 <code>results/charts/</code>。</div>
+</header>
+
+<p class="lead">几乎每个投资者都听过一句话——「等回调了再买」。直觉上，能在低点买入显然更划算。于是我们做一个极端实验：假设你是<strong>上帝</strong>，<strong>精确地知道</strong>未来每一次下跌的最低点。你把每月的 $100 攒成现金，只在「两个历史新高之间的最低点」一次性全部投入。这就是「上帝抄底（God Buy the Dip）」。</p>
+
+<p>它的对手是最朴素的<strong>定投（DCA）</strong>：每月 $100，到手就买，从不等待。两者投入完全相同、买的是同一个指数。谁会赢？</p>
+
+<div class="callout">
+  <strong>两种策略的精确定义</strong><br>
+  · <strong>定投 DCA：</strong>每月把 $100 立即买入指数，持有到期末，不卖出。<br>
+  · <strong>上帝抄底：</strong>每月把 $100 存为现金（利率 0%）；当市场到达「两个历史新高之间的绝对最低点」时，把累积的全部现金一次性投入。拥有完美的未来信息。
+</div>
+
+<h2>一、先看一个上帝占优的例子：1995–2018</h2>
+
+<p>「历史新高」指数走势如下，<span style="color:var(--green)">绿点</span>标出每一个创出历史新高的月份。只有当市场跌破前期高点时，才算进入「回调」。</p>
+
+<figure>
+  <img class="chart-img" src="results/charts/01_market_with_all_time_highs_1995_2018.png" alt="1995-2018 实际总回报指数与历史新高">
+  <figcaption><b>图 1</b>　1995–2018 实际总回报指数，绿点为历史新高月份。</figcaption>
+</figure>
+
+<p>把每一轮回调的<strong>最低点</strong>用<span style="color:var(--red)">红点</span>标出——这些就是上帝会出手的时刻。最显眼的一个在 <strong>2009 年 3 月</strong>（金融危机底部）。</p>
+
+<figure>
+  <img class="chart-img" src="results/charts/02_market_with_dip_bottoms_1995_2018.png" alt="1995-2018 历史新高与回调底部">
+  <figcaption><b>图 2</b>　绿点为历史新高，红点为「两个新高之间的最低点」（上帝的买入时刻）。</figcaption>
+</figure>
+
+<p>把图 2 放大到 <strong>2016–2018</strong> 这一段，可以逐月看清细节：牛市中几乎月月创新高（绿点），其间几次小幅回调的最低点（红点）就是上帝在此期间的买入时刻——2016-02、2016-10、2017-04、2017-08、2018-04、2018-12。</p>
+
+<figure>
+  <img class="chart-img" src="results/charts/02b_market_with_dip_bottoms_2016_2018.png" alt="图2放大：2016-2018 历史新高与回调底部">
+  <figcaption><b>图 2b</b>　图 2 的局部放大（2016–2018），逐月展示历史新高与回调底部。</figcaption>
+</figure>
+
+<p>上帝的现金是怎么积累和投出的？下图把每一刻的资金拆成两块堆叠：<span style="color:var(--accent)">已投入市场</span> 与 <span style="color:#ff7f0e">等待中的现金</span>，二者之和始终等于累计投入。可以看到 2000–2009 年间现金不断堆高，直到 <strong>2009 年 3 月一次性投入约 $10,600</strong>，现金瞬间清零。</p>
+
+<figure>
+  <img class="chart-img" src="results/charts/03_btd_invested_amount_and_cash_1995_2018.png" alt="抄底策略的现金与已投入金额">
+  <figcaption><b>图 3</b>　上帝抄底的资金分配：现金堆积，在底部一次性投入（红点）。</figcaption>
+</figure>
+
+<p>因为完美抄在了 2009 年的底，这个区间里<strong>上帝确实赢了</strong>：</p>
+
+<figure>
+  <img class="chart-img" src="results/charts/04_portfolio_value_dca_vs_btd_1995_2018.png" alt="1995-2018 定投 vs 抄底 组合价值">
+  <figcaption><b>图 4</b>　1995–2018 组合价值：<b>定投 $61,760</b> vs <b>上帝抄底 $71,454（+15.7%）</b>。</figcaption>
+</figure>
+
+<p>为什么 2009 年那一笔如此关键？下图的黑色柱表示「在某月投入的每 $100，到 2018 年底会长成多少」。越早投、买得越便宜，长得越高：1995 年 1 月的 $100 长成了约 <strong>$516</strong>；而 2009 年 3 月那一大笔买在低点，每 $100 也长成约 <strong>$350</strong>。红点标出上帝实际买入的月份。</p>
+
+<figure>
+  <img class="chart-img" src="results/charts/05_purchase_growth_1995_2018.png" alt="1995-2018 每笔投入的最终价值">
+  <figcaption><b>图 5</b>　每月 $100 投入到期末的最终价值（黑柱），红点为上帝买入月份。2009 年 3 月那一笔 $10,600 最终长到约 $37,091，占组合的 <b>51.9%</b>。</figcaption>
+</figure>
+
+<div class="callout warn">
+  <strong>但 1995–2018 只是个例。</strong>它恰好把一次世纪级暴跌（2008–09）放在了区间中段、且之后市场强劲反弹——这正是抄底最理想的剧本。把镜头拉到整个历史，结论会反转。
+</div>
+
+<h2>二、当暴跌发生得「足够早」：1928–1957</h2>
+
+<p>如果大崩盘出现在<strong>投资生涯的早期</strong>，抄底威力惊人——因为抄底买入的便宜筹码有最长的时间去复利增长。1928–1957 区间里，1932 年 6 月（大萧条底部，实际回撤约 −77%）的每 $100，到期末长成约 <strong>$1,585</strong>（原文给出的数字约为 $4,000，差异源于窗口端点与归一化口径）。</p>
+
+<figure>
+  <img class="chart-img" src="results/charts/06_purchase_growth_1928_1957.png" alt="1928-1957 每笔投入的最终价值">
+  <figcaption><b>图 6</b>　1928–1957：早期的大崩盘让抄底大获全胜。本区间 <b>定投 $152,866</b> vs <b>上帝抄底 $187,465（+22.6%）</b>。</figcaption>
+</figure>
+
+<h2>三、把所有历史区间放在一起：上帝输了</h2>
+
+<p>对 1920–1979 的每一个起始年，跑一遍完整的 40 年（共 <strong>60 个滚动窗口</strong>），计算「上帝抄底 ÷ 定投 − 1」。<span style="color:var(--green)">零线以上</span>是抄底赢，<span style="color:var(--red)">零线以下</span>是定投赢。</p>
+
+<figure>
+  <img class="chart-img" src="results/charts/07_rolling_40yr_btd_outperformance.png" alt="滚动40年 抄底相对定投的超额收益">
+  <figcaption><b>图 7</b>　滚动 40 年，抄底相对定投的超额收益。只有 1920 年代起始的少数窗口为正，<b>定投在 71.7% 的窗口里胜出</b>。</figcaption>
+</figure>
+
+<div class="callout highlight">
+  <strong>为什么完美抄底反而会输？</strong>因为<strong>现金拖累</strong>。市场长期向上，「等底部」意味着大量现金长期闲置、利率为 0；而定投的每一分钱都尽早进场、尽早复利。等待的机会成本，往往超过抄在底部省下的那点折扣。
+</div>
+
+<h2>四、当暴跌发生得「太晚」：1975–2014</h2>
+
+<p>这是抄底最糟的剧本。投资者从 1975 年开始，但市场仍深陷 1973–74 熊市的余波之中、<strong>迟迟不创新高</strong>，因此在很长时间里「没有新高 → 没有可抄的回调」，现金只能干等。等到上帝第一次出手，已经到了约 1985 年——它<strong>错过了 1974 年的大底</strong>。</p>
+
+<figure>
+  <img class="chart-img" src="results/charts/08_portfolio_value_dca_vs_btd_1975_2014.png" alt="1975-2014 定投 vs 抄底 组合价值">
+  <figcaption><b>图 8</b>　1975–2014 组合价值：<b>定投 $296,451</b> 大幅领先 <b>上帝抄底 $245,145（−17.3%）</b>，是全部窗口里最差的一个。</figcaption>
+</figure>
+
+<p>下图最能说明问题：本区间最值钱的投入恰恰是<strong>最早期（1975–1982）</strong>的那些（1975 年 1 月每 $100 → 约 <strong>$2,015</strong>），但上帝的第一个红点要到 ~1985 年才出现，<strong>完美错过了所有最便宜的筹码</strong>。</p>
+
+<figure>
+  <img class="chart-img" src="results/charts/09_purchase_growth_1975_2014.png" alt="1975-2014 每笔投入的最终价值">
+  <figcaption><b>图 9</b>　1975–2014：最值钱的是最早期的投入，但上帝的买点全部集中在后段较矮的柱子上。</figcaption>
+</figure>
+
+<h2>五、最后一击：现实中你不可能精确抄底</h2>
+
+<p>上帝尚且 70% 跑输，何况凡人。如果把每一次买入<strong>仅仅推迟 2 个月</strong>（依然假设你大致知道底部在哪），结果是灾难性的——<strong>96.7% 的窗口跑输定投</strong>。</p>
+
+<table>
+  <thead><tr><th>策略</th><th>跑赢定投的窗口比例</th><th>跑输定投</th></tr></thead>
+  <tbody>
+    <tr><td>上帝抄底（完美底部）</td><td class="lose">28.3%</td><td>71.7%</td></tr>
+    <tr><td>延迟 1 个月</td><td class="lose">26.7%</td><td>73.3%</td></tr>
+    <tr><td>延迟 2 个月</td><td class="lose">3.3%</td><td>96.7%</td></tr>
+    <tr><td>延迟 3 个月</td><td class="lose">0.0%</td><td>100.0%</td></tr>
+    <tr><td>延迟 6 个月</td><td class="lose">1.7%</td><td>98.3%</td></tr>
+  </tbody>
+</table>
+
+<figure>
+  <img class="chart-img" src="results/charts/10_rolling_40yr_delayed_btd_outperformance.png" alt="延迟2个月抄底 相对定投的超额收益">
+  <figcaption><b>图 10</b>　仅仅延迟 2 个月，抄底相对定投的超额收益几乎全线落入零线以下。</figcaption>
+</figure>
+
+<div class="callout warn">
+  <strong>结论：</strong>即使拥有上帝般的完美抄底信息，也很难战胜「每月有钱就投」的定投；而只要稍有偏差，就几乎必输。与其等待那个也许永远不来的「完美回调」，不如<strong>立刻、持续地投入</strong>。
+</div>
+
+<h2>附录：补充图表</h2>
+<p>以下为本项目在原文之外的扩展图，便于核对分布与胜率。</p>
+
+<figure>
+  <img class="chart-img" src="results/charts/11_btd_outperformance_histogram.png" alt="抄底超额收益分布直方图">
+  <figcaption><b>图 11</b>　60 个窗口中，上帝抄底相对定投超额收益的分布（多数为负）。</figcaption>
+</figure>
+
+<figure>
+  <img class="chart-img" src="results/charts/12_win_rate_by_strategy.png" alt="各策略跑赢定投的窗口比例">
+  <figcaption><b>图 12</b>　各抄底变体跑赢定投的窗口比例（越往后延迟越惨）。</figcaption>
+</figure>
+
+<footer>
+  本页为 Nick Maggiulli 原文的中文复刻与数据重算，结论与原文一致：上帝抄底在 <b>71.7%</b> 的滚动 40 年窗口跑输定投，延迟 2 个月则升至 <b>96.7%</b>。
+  数据：Shiller 实际标普总回报（1871–2023）。所有图表由 <span class="kbd">python main.py</span> 生成于 <code>results/charts/</code>。
+</footer>
+</div>
+</body>
+</html>
