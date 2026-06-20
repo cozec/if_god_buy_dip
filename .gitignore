@@ -1,6 +1,11 @@
 .venv/
 data/
-results/
 logs/
+
+# Ignore results, but keep the chart PNGs so report_zh.html renders on GitHub.
+results/*
+!results/charts/
+results/charts/*
+!results/charts/*.png
 __pycache__/
 *.pyc
