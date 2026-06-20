@@ -52,8 +52,8 @@
 <header>
   <h1>连上帝也无法战胜定投</h1>
   <div class="sub">复刻 Nick Maggiulli《Even God Couldn’t Beat Dollar-Cost Averaging》（Of Dollars And Data）</div>
-  <div class="keypoint">核心结论：即便拥有「完美抄底」的上帝视角，<strong>抄底策略在超过 70% 的 40 年区间里依然跑输无脑定投</strong>。</div>
-  <div class="src">数据来源：Robert Shiller 月度数据集（标普综合指数价格、股息、CPI），构建为<strong>实际总回报指数</strong>（股息再投资、经 CPI 通胀调整），覆盖 1871–2023。每月投入 $100，持有至 40 年期末，永不卖出。本页所有图表均由本项目 <span class="kbd">python main.py</span> 生成于 <code>results/charts/</code>。</div>
+  <div class="keypoint">核心结论：即便拥有「完美抄底」的上帝视角，<strong>抄底策略在约七成的 40 年区间里依然跑输无脑定投</strong>。</div>
+  <div class="src">数据来源：Robert Shiller 月度数据集（标普综合指数价格、股息、CPI），构建为<strong>实际总回报指数</strong>（股息再投资、经 CPI 通胀调整），覆盖 1871–2023；并以<strong>一致口径的现代代理</strong>（标普 500 全收益指数 <code>^SP500TR</code> × FRED 的 <code>CPIAUCNS</code>）<strong>延伸至 2026 年</strong>，使滚动窗口覆盖到最新。每月投入 $100，持有至 40 年期末，永不卖出。本页所有图表均由本项目 <span class="kbd">python main.py</span> 生成于 <code>results/charts/</code>。</div>
 </header>
 
 <p class="lead">几乎每个投资者都听过一句话——「等回调了再买」。直觉上，能在低点买入显然更划算。于是我们做一个极端实验：假设你是<strong>上帝</strong>，<strong>精确地知道</strong>未来每一次下跌的最低点。你把每月的 $100 攒成现金，只在「两个历史新高之间的最低点」一次性全部投入。这就是「上帝抄底（God Buy the Dip）」。</p>
@@ -125,11 +125,15 @@
 
 <h2>三、把所有历史区间放在一起：上帝输了</h2>
 
-<p>对 1920–1983 的每一个起始年，跑一遍完整的 40 年（共 <strong>64 个滚动窗口</strong>，已扩展到数据所支持的最新区间 1983–2022），计算「上帝抄底 ÷ 定投 − 1」。<span style="color:var(--green)">零线以上</span>是抄底赢，<span style="color:var(--red)">零线以下</span>是定投赢。</p>
+<p>对 1920–1986 的每一个起始年，跑一遍完整的 40 年（共 <strong>67 个滚动窗口</strong>，其中最后 3 个借助现代延伸数据覆盖至 2025 年），计算「上帝抄底 ÷ 定投 − 1」。<span style="color:var(--green)">零线以上</span>是抄底赢，<span style="color:var(--red)">零线以下</span>是定投赢。</p>
+
+<div class="callout">
+  <strong>关于「现代延伸数据」：</strong>Shiller 的数据集目前止于 2023 年中。为让窗口覆盖到最新，我们用<strong>同一口径的代理</strong>把实际总回报指数向后延伸：以标普 500 <strong>全收益指数</strong>（<code>^SP500TR</code>，已含股息再投资）提供名义总回报，再用 FRED 的 <strong>CPI-U（<code>CPIAUCNS</code>）</strong>做通胀调整，锚定在 Shiller 末值上逐月链接。图中<span style="color:#5b2d8e">紫色阴影区（1984 起）</span>即为含此延伸数据的窗口。
+</div>
 
 <figure>
   <img class="chart-img" src="results/charts/07_rolling_40yr_btd_outperformance.png" alt="滚动40年 抄底相对定投的超额收益">
-  <figcaption><b>图 7</b>　滚动 40 年（1920–1983 起始），抄底相对定投的超额收益。只有 1920 年代起始的少数窗口为正，<b>定投在 71.9% 的窗口里胜出</b>。</figcaption>
+  <figcaption><b>图 7</b>　滚动 40 年（1920–1986 起始，含现代延伸），抄底相对定投的超额收益。<b>定投在 68.7% 的窗口里胜出</b>；若只看与原文可比、延伸前的 1920–1983 共 64 个窗口，则为 <b>71.9%</b>（与原文 &gt;70% 一致）。注意末端几个窗口因抄到 2009、2020 两次大底而转正。</figcaption>
 </figure>
 
 <div class="callout highlight">
@@ -154,18 +158,19 @@
 
 <h2>五、最后一击：现实中你不可能精确抄底</h2>
 
-<p>上帝尚且 70% 跑输，何况凡人。如果把每一次买入<strong>仅仅推迟 2 个月</strong>（依然假设你大致知道底部在哪），结果是灾难性的——<strong>96.9% 的窗口跑输定投</strong>。</p>
+<p>上帝尚且近七成跑输，何况凡人。如果把每一次买入<strong>仅仅推迟 2 个月</strong>（依然假设你大致知道底部在哪），结果是灾难性的——<strong>97.0% 的窗口跑输定投</strong>。</p>
 
 <table>
   <thead><tr><th>策略</th><th>跑赢定投的窗口比例</th><th>跑输定投</th></tr></thead>
   <tbody>
-    <tr><td>上帝抄底（完美底部）</td><td class="lose">28.1%</td><td>71.9%</td></tr>
-    <tr><td>延迟 1 个月</td><td class="lose">25.0%</td><td>75.0%</td></tr>
-    <tr><td>延迟 2 个月</td><td class="lose">3.1%</td><td>96.9%</td></tr>
+    <tr><td>上帝抄底（完美底部）</td><td class="lose">31.3%</td><td>68.7%</td></tr>
+    <tr><td>延迟 1 个月</td><td class="lose">25.4%</td><td>74.6%</td></tr>
+    <tr><td>延迟 2 个月</td><td class="lose">3.0%</td><td>97.0%</td></tr>
     <tr><td>延迟 3 个月</td><td class="lose">0.0%</td><td>100.0%</td></tr>
-    <tr><td>延迟 6 个月</td><td class="lose">1.6%</td><td>98.4%</td></tr>
+    <tr><td>延迟 6 个月</td><td class="lose">1.5%</td><td>98.5%</td></tr>
   </tbody>
 </table>
+<p style="font-size:14px;color:var(--muted)">注：上表为含现代延伸的全部 67 个窗口（1920–1986）。与原文可比的延伸前 64 个窗口口径下，上帝抄底跑输 71.9%、延迟 2 个月跑输 96.9%。</p>
 
 <figure>
   <img class="chart-img" src="results/charts/10_rolling_40yr_delayed_btd_outperformance.png" alt="延迟2个月抄底 相对定投的超额收益">
@@ -181,7 +186,7 @@
 
 <figure>
   <img class="chart-img" src="results/charts/11_btd_outperformance_histogram.png" alt="抄底超额收益分布直方图">
-  <figcaption><b>图 11</b>　64 个窗口中，上帝抄底相对定投超额收益的分布（多数为负）。</figcaption>
+  <figcaption><b>图 11</b>　67 个窗口中，上帝抄底相对定投超额收益的分布（多数为负）。</figcaption>
 </figure>
 
 <figure>
@@ -190,8 +195,8 @@
 </figure>
 
 <footer>
-  本页为 Nick Maggiulli 原文的中文复刻与数据重算，结论与原文一致：上帝抄底在 <b>71.9%</b> 的滚动 40 年窗口（1920–1983 起始，共 64 个）跑输定投，延迟 2 个月则升至 <b>96.9%</b>。
-  数据：Shiller 实际标普总回报（1871–2023）。所有图表由 <span class="kbd">python main.py</span> 生成于 <code>results/charts/</code>。
+  本页为 Nick Maggiulli 原文的中文复刻与数据重算。含现代延伸的全部 67 个窗口（1920–1986）下，上帝抄底跑输 <b>68.7%</b>、延迟 2 个月跑输 <b>97.0%</b>；与原文可比的延伸前 64 个窗口下为 <b>71.9%</b> / <b>96.9%</b>，与原文 &gt;70%、~97% 一致。
+  数据：Shiller 实际标普总回报（1871–2023）+ 现代代理 <code>^SP500TR</code> × FRED <code>CPIAUCNS</code> 延伸至 2026。所有图表由 <span class="kbd">python main.py</span> 生成于 <code>results/charts/</code>。
 </footer>
 </div>
 </body>

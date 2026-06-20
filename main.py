@@ -37,6 +37,9 @@ CONFIG = {
     "use_real_returns": True,     # use CPI-deflated total-return index
     "execution_timing": "month_end",
     "delayed_btd_months": [1, 2, 3, 6],
+    # Append a modern real-TR proxy (^SP500TR x FRED CPI) past Shiller's data so
+    # rolling windows reach the present. Clearly labelled in data and charts.
+    "use_modern_extension": True,
 }
 
 # Illustrative (non-rolling) windows used for the article's example charts.
@@ -59,8 +62,10 @@ def main() -> None:
     utils.ensure_dirs()
 
     # 1. Load data + build real total-return index ------------------------- #
-    df, source = load_market_data()
+    df, source = load_market_data(modern_extension=CONFIG["use_modern_extension"])
     win_count_data = df["date"].iloc[0], df["date"].iloc[-1]
+    # Last month sourced purely from Shiller (before any modern extension).
+    shiller_end = df.loc[~df["is_modern_extension"], "date"].max()
 
     # Extend the rolling windows as far as the data allows: a 40-year window
     # needs December of (start + window_years - 1) to be present. This auto-grows
@@ -80,6 +85,13 @@ def main() -> None:
     delayed2_under = (~summary["delayed2_beats_dca"]).mean() * 100
     best = summary.loc[summary["god_btd_outperformance"].idxmax()]
     worst = summary.loc[summary["god_btd_outperformance"].idxmin()]
+
+    # Article-comparable subset: windows that end on or before Shiller's data
+    # (no modern extension). The article's headline numbers were computed on a
+    # period like this, so the claim checks are verified against it.
+    comparable = summary[summary["end_year"].map(lambda y: pd.Timestamp(y, 12, 1) <= shiller_end)]
+    god_under_cmp = (~comparable["god_btd_beats_dca"]).mean() * 100
+    delayed2_under_cmp = (~comparable["delayed2_beats_dca"]).mean() * 100
 
     # Global dip bottoms (perfect-foresight buy points) computed once; each
     # window uses only the bottoms inside it.
@@ -149,9 +161,15 @@ def main() -> None:
                                "06_purchase_growth_1928_1957.png",
                                "每笔投入的增长（1928–1957）：早期崩盘有利抄底")
 
+    # First start year whose 40-year window reaches into the modern extension.
+    ext_starts = [s for s in summary["start_year"]
+                  if pd.Timestamp(s + CONFIG["window_years"] - 1, 12, 1) > shiller_end]
+    mark_year = min(ext_starts) if (CONFIG["use_modern_extension"] and ext_starts) else None
+    mark_label = "含现代延伸数据 →" if mark_year else None
+
     plots.plot_rolling_outperformance(summary, "god_btd_outperformance",
                                       "07_rolling_40yr_btd_outperformance.png",
-                                      "上帝抄底 vs 定投，滚动40年窗口")
+                                      "上帝抄底 vs 定投，滚动40年窗口", mark_year, mark_label)
 
     e75 = examples["1975_2014"]
     plots.plot_portfolio_comparison(e75["dca_curve"], e75["god_curve"],
@@ -163,7 +181,7 @@ def main() -> None:
 
     plots.plot_rolling_outperformance(summary, "delayed2_outperformance",
                                       "10_rolling_40yr_delayed_btd_outperformance.png",
-                                      "延迟2个月抄底 vs 定投，滚动40年窗口")
+                                      "延迟2个月抄底 vs 定投，滚动40年窗口", mark_year, mark_label)
 
     # Extra charts.
     plots.plot_outperformance_histogram(summary, "11_btd_outperformance_histogram.png",
@@ -184,6 +202,10 @@ def main() -> None:
           f"({summary['start_year'].min()}-{summary['start_year'].max()} starts)")
     print(f"4. God BTD beats DCA      : {_pct(god_beats/100)} of windows")
     print(f"5. God BTD underperforms  : {_pct(god_under/100)} of windows")
+    if len(comparable) < n_windows:
+        print(f"   (article-comparable, {len(comparable)} windows ending <= "
+              f"{shiller_end.date()}: God underperforms {_pct(god_under_cmp/100)}; "
+              f"the {n_windows - len(comparable)} newest windows include the modern extension)")
     print(f"6. 2m Delayed underperf.  : {_pct(delayed2_under/100)} of windows")
     print(f"7. Best window for BTD    : {int(best['start_year'])}-{int(best['end_year'])}  "
           f"({_pct(best['god_btd_outperformance'])} vs DCA)")
@@ -203,8 +225,8 @@ def main() -> None:
     print("ARTICLE CLAIM CHECKS")
     print("-" * 70)
     checks = [
-        ("God BTD underperforms DCA in >70% of windows", god_under > 70),
-        ("2-month delay underperforms DCA in ~97% of windows", delayed2_under >= 90),
+        ("God BTD underperforms DCA in >70% of windows (article-comparable subset)", god_under_cmp > 70),
+        ("2-month delay underperforms DCA in ~97% of windows (article-comparable)", delayed2_under_cmp >= 90),
         ("1928-1957 favourable for BTD (BTD beats DCA)",
          examples["1928_1957"]["god_metrics"]["final_value"]
          > examples["1928_1957"]["dca_metrics"]["final_value"]),

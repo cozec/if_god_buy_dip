@@ -135,17 +135,104 @@ def _load_yfinance() -> pd.DataFrame:
 
 
 # --------------------------------------------------------------------------- #
+# Modern extension: a consistent real-TR proxy past the end of Shiller's data
+# --------------------------------------------------------------------------- #
+FRED_CPI_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCNS"
+
+
+def _load_modern_extension(shiller_df: pd.DataFrame) -> pd.DataFrame | None:
+    """Chain-link a modern real total-return proxy onto the Shiller index.
+
+    Shiller's file currently stops around mid-2023. To carry the *same* real
+    total-return index forward we use a consistent proxy built from:
+
+    * **S&P 500 Total Return index** (``^SP500TR``, yfinance) for the monthly
+      *nominal* total return (dividends already reinvested), and
+    * **CPI-U, not seasonally adjusted** (``CPIAUCNS``, FRED) for deflation -
+      the same CPI family Shiller uses.
+
+    The extension is *anchored* at Shiller's last value and grown by the proxy's
+    monthly **real** return ``(TR_t/TR_{t-1}) * (CPI_{t-1}/CPI_t)``, so units and
+    base (100 = 1871-01, real) stay identical. Rows are flagged
+    ``is_modern_extension=True``.
+
+    Caveat (documented, intentional): Shiller's price is a monthly *average*
+    while ``^SP500TR`` is month-*end*, so the single splice month mixes
+    conventions slightly. Returns ``None`` if either source is unavailable.
+    """
+    base_date = shiller_df["date"].iloc[-1]
+    r0 = shiller_df["real_total_return_index"].iloc[-1]
+    n0 = shiller_df["nominal_total_return_index"].iloc[-1]
+    try:
+        import io
+        import urllib.request
+
+        import yfinance as yf
+
+        # Nominal total-return level (dividends reinvested), month-start index.
+        raw = yf.download("^SP500TR", start="2023-01-01", interval="1mo",
+                          auto_adjust=False, progress=False)
+        tr = raw["Close"]
+        if isinstance(tr, pd.DataFrame):
+            tr = tr.iloc[:, 0]
+        tr = pd.DataFrame({"date": tr.index.to_period("M").to_timestamp(), "tr": tr.values}).dropna()
+
+        # CPI-U NSA from FRED (no API key needed).
+        text = urllib.request.urlopen(FRED_CPI_URL, timeout=30).read().decode()
+        cpi = pd.read_csv(io.StringIO(text))
+        cpi.columns = ["date", "cpi"]
+        cpi["date"] = pd.to_datetime(cpi["date"]).dt.to_period("M").dt.to_timestamp()
+        cpi["cpi"] = pd.to_numeric(cpi["cpi"], errors="coerce")
+    except Exception as exc:  # noqa: BLE001 - any failure -> skip extension
+        log.warning("Modern extension unavailable (%s); using Shiller only.", exc)
+        return None
+
+    # Align on month, keep the anchor month plus everything after it.
+    m = tr.merge(cpi, on="date", how="inner").sort_values("date").reset_index(drop=True)
+    m = m[m["date"] >= base_date].reset_index(drop=True)
+    # CPI can have an isolated interior gap (e.g. a delayed monthly release such
+    # as Oct-2025); linearly interpolate those, then drop any trailing NaNs.
+    m["cpi"] = m["cpi"].interpolate(method="linear", limit_area="inside")
+    m = m.dropna(subset=["tr", "cpi"]).reset_index(drop=True)
+    if m.empty or m["date"].iloc[0] != base_date:
+        log.warning("Modern extension: anchor month %s missing; using Shiller only.", base_date.date())
+        return None
+
+    # Monthly real gross return relative to the previous month, then compound.
+    real_gross = (m["tr"] / m["tr"].shift(1)) * (m["cpi"].shift(1) / m["cpi"])
+    nom_gross = m["tr"] / m["tr"].shift(1)
+    ext = m.iloc[1:].copy()  # drop the anchor row itself (it is Shiller's last)
+    ext["real_total_return_index"] = r0 * real_gross.iloc[1:].cumprod().values
+    ext["nominal_total_return_index"] = n0 * nom_gross.iloc[1:].cumprod().values
+    ext["nominal_price"] = float("nan")  # proxy is a TR level, not a price
+    ext["dividend"] = float("nan")        # dividends are embedded in ^SP500TR
+    ext["is_modern_extension"] = True
+    out = ext[["date", "nominal_price", "dividend", "cpi",
+               "nominal_total_return_index", "real_total_return_index", "is_modern_extension"]]
+    log.info("Modern extension: %d months %s to %s (^SP500TR x FRED CPIAUCNS).",
+             len(out), out["date"].iloc[0].date(), out["date"].iloc[-1].date())
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # Public API
 # --------------------------------------------------------------------------- #
-def load_market_data(force_download: bool = False) -> tuple[pd.DataFrame, str]:
+def load_market_data(force_download: bool = False, modern_extension: bool = False) -> tuple[pd.DataFrame, str]:
     """Load monthly market data and build the real total-return index.
+
+    Parameters
+    ----------
+    modern_extension : bool
+        If True, append a clearly-labelled modern proxy (``^SP500TR`` deflated by
+        FRED CPI) past the end of Shiller's data so windows reach the present.
 
     Returns
     -------
     (df, source) where ``df`` has columns::
 
         date, nominal_price, dividend, cpi,
-        nominal_total_return_index, real_total_return_index, is_all_time_high
+        nominal_total_return_index, real_total_return_index,
+        is_modern_extension, is_all_time_high
 
     and ``source`` is a human-readable description of the data origin.
     """
@@ -158,11 +245,21 @@ def load_market_data(force_download: bool = False) -> tuple[pd.DataFrame, str]:
         df = _load_yfinance()
         source = "yfinance ^GSPC (NOMINAL price return, modern only - approximation)"
 
+    df["is_modern_extension"] = False
+    if modern_extension:
+        ext = _load_modern_extension(df)
+        if ext is not None and not ext.empty:
+            df = pd.concat([df, ext], ignore_index=True)
+            source += (f" + modern real-TR extension (^SP500TR x FRED CPIAUCNS) "
+                       f"through {df['date'].iloc[-1].date()}")
+
+    # All-time highs are computed on the FULL (possibly extended) real series.
     df["is_all_time_high"] = compute_all_time_highs(df["real_total_return_index"])[1].values
 
     cols = [
         "date", "nominal_price", "dividend", "cpi",
-        "nominal_total_return_index", "real_total_return_index", "is_all_time_high",
+        "nominal_total_return_index", "real_total_return_index",
+        "is_modern_extension", "is_all_time_high",
     ]
     df = df[cols]
     df.to_csv(PROCESSED_CSV, index=False)

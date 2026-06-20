@@ -14,8 +14,10 @@ over rolling 40-year windows:
 | **Delayed Buy the Dip** | Same, but buy `N` months *after* each bottom (N = 1, 2, 3, 6). |
 
 The headline finding: even with a perfect crystal ball for market bottoms, God
-Buy the Dip **underperforms DCA in ~72% of 40-year windows**, because cash sits
-idle (earning nothing) while it waits for dips that may be years away.
+Buy the Dip **underperforms DCA in ~70% of 40-year windows**, because cash sits
+idle (earning nothing) while it waits for dips that may be years away. (71.9% on
+the article-comparable windows ending by 2023; 68.7% over the full set extended
+to 2025 — the newest windows catch the 2009 and 2020 bottoms.)
 
 ## Quick start
 
@@ -44,6 +46,25 @@ to a dividend-reinvested, inflation-adjusted buy-and-hold position:
 
 A **yfinance `^GSPC`** fallback exists for offline/modern-only runs, but it is
 nominal price-return only and clearly labelled as an approximation.
+
+### Modern extension (`use_modern_extension`, default on)
+
+Shiller's file currently ends mid-2023. To carry the **same** real total-return
+index to the present, an optional, clearly-labelled extension chain-links a
+consistent proxy onto Shiller's last value:
+
+* **`^SP500TR`** (S&P 500 Total Return, yfinance) → monthly *nominal* total
+  return (dividends already reinvested);
+* **`CPIAUCNS`** (CPI-U NSA, FRED) → deflation, the same CPI family Shiller uses.
+
+Each extension month grows the index by the proxy's real return
+`(TR_t/TR_{t-1}) · (CPI_{t-1}/CPI_t)`, so units/base stay identical. Rows are
+flagged `is_modern_extension=True`; isolated CPI release gaps are interpolated.
+This pushes coverage to ~2026 and rolling windows to 1986 starts (1986-2025).
+Article claims are still verified against the pre-extension comparable subset.
+If either source is offline, the extension is skipped and the run continues on
+Shiller only. (Minor documented seam: Shiller price is a monthly *average* vs
+`^SP500TR` month-*end*.)
 
 ## Key modelling decision: all-time highs are *global*
 
@@ -87,6 +108,7 @@ start_year_max       = 1979       # floor; auto-extended at runtime to the lates
                                   # year the data supports (currently 1983 -> 1983-2022)
 window_years         = 40        # a window is Jan(start)..Dec(start+39), e.g. 1920-1959
 cash_return          = 0.0       # annual interest on uninvested cash
+use_modern_extension = True      # append ^SP500TR x FRED CPI past Shiller's data
 use_real_returns     = True
 execution_timing     = "month_end"
 delayed_btd_months   = [1, 2, 3, 6]
@@ -112,7 +134,8 @@ article's claims.
 - Trailing cash: if a window ends mid-drawdown with no confirmed next high, God's
   remaining cash stays uninvested (a real, intended drag).
 - Cash earns `cash_return` (default 0%); configurable.
-- Results use the Shiller file's range (currently through mid-2023). The rolling
+- With the modern extension on (default), data reaches ~2026 and the rolling
   test auto-extends `start_year_max` to the latest year with a complete 40-year
-  window — currently **1983 starts → 1983-2022**, 64 windows in total. It will
-  reach further automatically whenever Shiller publishes newer months.
+  window — currently **1986 starts → 1986-2025**, 67 windows. Turn the extension
+  off to stay on pure Shiller (then 1983 starts → 1983-2022, 64 windows). Either
+  way `start_year_max` grows automatically as newer data becomes available.

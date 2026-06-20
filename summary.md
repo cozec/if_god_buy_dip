@@ -3,9 +3,12 @@
 Reproduction of Maggiulli's result using **Shiller real S&P total return**
 (dividends reinvested, CPI-deflated), monthly, $100/month contributions.
 
-- **Data source:** Shiller `ie_data.xls`, real total-return index, 1871-01 → 2023-06.
-- **Rolling windows:** 64 windows, start years 1920–1983 (auto-extended to the
-  latest the data supports; last window 1983–2022), each 40 years (480 months).
+- **Data source:** Shiller `ie_data.xls`, real total-return index, 1871-01 → 2023-06,
+  **extended to 2026-05** by a consistent modern proxy (`^SP500TR` × FRED `CPIAUCNS`,
+  chain-linked; rows flagged `is_modern_extension`).
+- **Rolling windows:** 67 windows, start years 1920–1986 (auto-extended to the
+  latest the data supports; last window 1986–2025), each 40 years (480 months).
+  The 3 newest windows (1984–1986 starts) use the modern extension.
 - **All-time highs / dip bottoms:** computed globally on full history (see README).
 
 ## Headline result — rolling 40-year windows
@@ -13,11 +16,16 @@ Reproduction of Maggiulli's result using **Shiller real S&P total return**
 | Strategy | % of windows that beat DCA | % that underperform DCA |
 |---|---:|---:|
 | **DCA** | — (benchmark) | — |
-| God Buy the Dip (perfect bottom) | **28.1%** | **71.9%** |
-| Delayed Buy the Dip — 1 month | 25.0% | 75.0% |
-| Delayed Buy the Dip — 2 months | **3.1%** | **96.9%** |
+| God Buy the Dip (perfect bottom) | **31.3%** | **68.7%** |
+| Delayed Buy the Dip — 1 month | 25.4% | 74.6% |
+| Delayed Buy the Dip — 2 months | **3.0%** | **97.0%** |
 | Delayed Buy the Dip — 3 months | 0.0% | 100.0% |
-| Delayed Buy the Dip — 6 months | 1.6% | 98.4% |
+| Delayed Buy the Dip — 6 months | 1.5% | 98.5% |
+
+Full 67-window set (1920–1986, incl. modern extension). On the article-comparable
+pre-extension subset (64 windows, 1920–1983): God BTD underperforms **71.9%**,
+2-month delay **96.9%** — the newest windows catch the 2009/2020 bottoms, nudging
+God's full-set underperformance down to 68.7%.
 
 - Best window for God BTD: **1928–1967**, +21.6% vs DCA (buys the June 1932 bottom).
 - Worst window for God BTD: **1975–2014**, −17.3% vs DCA (misses the 1974 bottom).
@@ -26,8 +34,8 @@ Reproduction of Maggiulli's result using **Shiller real S&P total return**
 
 | Claim (article) | Reproduced | Status |
 |---|---|---|
-| God BTD underperforms DCA in >70% of windows | 71.9% | ✅ |
-| 2-month delay underperforms DCA ~97% | 96.9% | ✅ |
+| God BTD underperforms DCA in >70% of windows (comparable subset) | 71.9% | ✅ |
+| 2-month delay underperforms DCA ~97% (comparable subset) | 96.9% | ✅ |
 | 1928–1957 favourable for BTD | BTD +22.6% | ✅ |
 | 1975–2014 unfavourable for BTD | BTD −17.3% | ✅ |
 | 1995–2018 shows a large BTD buy at March 2009 | $10,600 lump, = 52% of final value | ✅ |
@@ -112,6 +120,6 @@ small buys are minor pullbacks during the late-1990s bull run.)
 
 `python main.py` regenerates every CSV in `results/`, all charts in
 `results/charts/`, and `logs/run.log`. Conclusion: **reproduced — even with
-perfect foresight, Buy the Dip loses to DCA in 71.9% of windows** (64 windows,
-1920–1983 starts, extended to the latest data), and missing the bottom by just
-two months pushes that to 96.9%.
+perfect foresight, Buy the Dip loses to DCA in ~70% of windows** (71.9% on the
+article-comparable subset; 68.7% over the full set extended to 2025), and missing
+the bottom by just two months pushes that to ~97%.

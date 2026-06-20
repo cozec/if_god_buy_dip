@@ -113,15 +113,25 @@ def plot_purchase_growth(dca_growth: pd.DataFrame, btd_growth: pd.DataFrame, nam
     _save(fig, name)
 
 
-def plot_rolling_outperformance(summary: pd.DataFrame, col: str, name: str, title: str) -> None:
+def plot_rolling_outperformance(summary: pd.DataFrame, col: str, name: str, title: str,
+                                mark_year: int | None = None, mark_label: str | None = None) -> None:
     """Line of Buy-the-Dip outperformance vs DCA by window start year (as in the
-    article): above the zero line = Buy the Dip wins, below = DCA wins."""
+    article): above the zero line = Buy the Dip wins, below = DCA wins.
+
+    If ``mark_year`` is given, shade window start years >= that year and draw a
+    dashed line to flag windows whose data includes the modern extension.
+    """
     fig, ax = plt.subplots(figsize=(11, 5))
     pct = summary[col] * 100
     ax.plot(summary["start_year"], pct, color=BLUE, lw=1.6)
     ax.fill_between(summary["start_year"], pct, 0, where=pct >= 0, color=GREEN, alpha=0.30)
     ax.fill_between(summary["start_year"], pct, 0, where=pct < 0, color=RED, alpha=0.30)
     ax.axhline(0, color="black", lw=0.9)
+    if mark_year is not None:
+        ax.axvspan(mark_year - 0.5, summary["start_year"].max() + 0.5, color="#9467bd", alpha=0.12)
+        ax.axvline(mark_year - 0.5, color="#9467bd", lw=1.2, ls="--")
+        ax.text(mark_year - 0.5, ax.get_ylim()[1] * 0.92, "  " + (mark_label or "含现代延伸数据"),
+                color="#5b2d8e", fontsize=9, va="top")
     below = (pct < 0).mean() * 100
     ax.set_title(f"{title}（定投在 {below:.0f}% 的窗口胜出）")
     ax.set_xlabel("窗口起始年")
