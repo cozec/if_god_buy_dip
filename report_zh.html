@@ -213,6 +213,52 @@
 
 <p>所以，即便手握完美的水晶球，这个策略真正的硬伤<span class="hl">不是择时不准，而是「根本没在场」</span>。</p>
 
+<h2>七、换一个市场，结论会变吗？（模拟实验）</h2>
+
+<p>既然定投取胜的根源是市场<strong>长期向上</strong>，那一个自然的问题是：<strong>如果市场不涨呢？</strong>我们用随机游走生成两种「平行宇宙」的市场，<strong>时间区间与真实历史完全相同</strong>，每种各模拟 80 条路径，再跑同样的滚动 40 年「定投 vs 上帝抄底」：</p>
+
+<ul>
+  <li><strong>下跌市</strong>：带负向漂移的随机游走（长期阴跌的「世纪熊市」）。</li>
+  <li><strong>区间震荡市</strong>：均值回归（OU 过程），价格在一个区间内来回，没有净涨跌。</li>
+  <li><strong>上涨市</strong>：直接用<strong>真实历史</strong>作参照（一个持续上行的市场）。</li>
+</ul>
+
+<figure>
+  <img class="chart-img" src="results/charts/sim_01_representative_paths.png" alt="三种合成市场的代表性走势">
+  <figcaption><b>图 13</b>　三种市场的代表性走势（对数坐标，相同时间区间）：持续上涨 / 长期下跌 / 区间震荡。</figcaption>
+</figure>
+
+<p>结果非常清晰——<strong>上帝抄底能否战胜定投，完全取决于市场往哪个方向走</strong>：</p>
+
+<table>
+  <thead><tr><th>市场环境</th><th>上帝抄底跑赢定投的比例</th><th>中位超额收益</th></tr></thead>
+  <tbody>
+    <tr><td>下跌市（模拟）</td><td><span class="hl">97.0%</span></td><td class="win">+136.8%</td></tr>
+    <tr><td>区间震荡市（模拟）</td><td>53.8%</td><td>+1.5%</td></tr>
+    <tr><td>上涨市（真实历史）</td><td class="lose">31.3%</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<figure>
+  <img class="chart-img" src="results/charts/sim_02_winrate_by_regime.png" alt="不同市场环境下上帝抄底的胜率">
+  <figcaption><b>图 14</b>　随着市场上行动力增强（下跌 → 震荡 → 上涨），上帝抄底的胜率<strong>单调下降</strong>，最终跌破五成。</figcaption>
+</figure>
+
+<div class="callout highlight">
+  <strong>核心解读：</strong>定投的优势<strong>并非来自择时能力，而完全来自「市场长期向上」这一前提</strong>。把上行动力抽掉（区间震荡），二者几乎打平；把方向反转（下跌市），<span class="hl">上帝抄底以 97% 的压倒性优势获胜</span>。
+</div>
+
+<p>为什么下跌市里抄底反而大胜？因为市场不断下跌时几乎不再创新高，上帝<strong>大部分时间只是持币观望</strong>（现金 0% 保值），而定投却把钱源源不断地投进一个一路下跌的市场——这正是「不去接下落的刀」。下图一目了然：</p>
+
+<figure>
+  <img class="chart-img" src="results/charts/sim_03_example_portfolios.png" alt="代表性窗口 定投 vs 上帝抄底">
+  <figcaption><b>图 15</b>　代表性 40 年窗口的组合价值：下跌市中定投（蓝）一路缩水、上帝抄底（红）靠持币与抄底大幅领先；震荡市基本缠绕；上涨市则是定投的主场。</figcaption>
+</figure>
+
+<p>这与前一节的结论正好互补：<span class="hl">「没在场」只有在市场上涨时才是错的</span>。市场一旦不涨甚至下跌，「等底部、留现金」反而成了优势——这也提醒我们，定投并非万能，它押注的是「人类经济长期向上」。</p>
+
+<p style="font-size:14px;color:var(--muted)">说明：以上为简化的随机游走模型，仅用于阐释机制，并非对未来的预测。真实历史用作「上涨市」参照；一个无记忆的随机上涨（约 61%）其实比真实市场（31%）更温和，因为真实牛市的上行更具持续性。</p>
+
 <footer>
   本页为 Nick Maggiulli 原文的中文复刻与数据重算。含现代延伸的全部 67 个窗口（1920–1986）下，上帝抄底跑输 <b>68.7%</b>、延迟 2 个月跑输 <b>97.0%</b>；与原文可比的延伸前 64 个窗口下为 <b>71.9%</b> / <b>96.9%</b>，与原文 &gt;70%、~97% 一致。
   数据：Shiller 实际标普总回报（1871–2023）+ 现代代理 <code>^SP500TR</code> × FRED <code>CPIAUCNS</code> 延伸至 2026。所有图表由 <span class="kbd">python main.py</span> 生成于 <code>results/charts/</code>。
