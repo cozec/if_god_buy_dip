@@ -83,7 +83,8 @@ god_buy_dip/
 ```python
 monthly_contribution = 100
 start_year_min       = 1920
-start_year_max       = 1979
+start_year_max       = 1979       # floor; auto-extended at runtime to the latest
+                                  # year the data supports (currently 1983 -> 1983-2022)
 window_years         = 40        # a window is Jan(start)..Dec(start+39), e.g. 1920-1959
 cash_return          = 0.0       # annual interest on uninvested cash
 use_real_returns     = True
@@ -111,5 +112,7 @@ article's claims.
 - Trailing cash: if a window ends mid-drawdown with no confirmed next high, God's
   remaining cash stays uninvested (a real, intended drag).
 - Cash earns `cash_return` (default 0%); configurable.
-- Results use the Shiller file's range (currently through mid-2023); the rolling
-  windows themselves end by 2018 (1979 + 39).
+- Results use the Shiller file's range (currently through mid-2023). The rolling
+  test auto-extends `start_year_max` to the latest year with a complete 40-year
+  window — currently **1983 starts → 1983-2022**, 64 windows in total. It will
+  reach further automatically whenever Shiller publishes newer months.

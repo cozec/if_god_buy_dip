@@ -62,6 +62,14 @@ def main() -> None:
     df, source = load_market_data()
     win_count_data = df["date"].iloc[0], df["date"].iloc[-1]
 
+    # Extend the rolling windows as far as the data allows: a 40-year window
+    # needs December of (start + window_years - 1) to be present. This auto-grows
+    # the range whenever the Shiller dataset is updated with newer months.
+    data_end = df["date"].iloc[-1]
+    last_full_year = data_end.year if data_end.month == 12 else data_end.year - 1
+    feasible_max_start = last_full_year - CONFIG["window_years"] + 1
+    CONFIG["start_year_max"] = max(CONFIG["start_year_max"], feasible_max_start)
+
     # 2. Rolling 40-year tests --------------------------------------------- #
     summary = run_rolling_40_year_tests(df, CONFIG)
     summary.to_csv(utils.RESULTS / "rolling_40yr_summary.csv", index=False)

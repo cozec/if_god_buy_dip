@@ -125,11 +125,11 @@
 
 <h2>三、把所有历史区间放在一起：上帝输了</h2>
 
-<p>对 1920–1979 的每一个起始年，跑一遍完整的 40 年（共 <strong>60 个滚动窗口</strong>），计算「上帝抄底 ÷ 定投 − 1」。<span style="color:var(--green)">零线以上</span>是抄底赢，<span style="color:var(--red)">零线以下</span>是定投赢。</p>
+<p>对 1920–1983 的每一个起始年，跑一遍完整的 40 年（共 <strong>64 个滚动窗口</strong>，已扩展到数据所支持的最新区间 1983–2022），计算「上帝抄底 ÷ 定投 − 1」。<span style="color:var(--green)">零线以上</span>是抄底赢，<span style="color:var(--red)">零线以下</span>是定投赢。</p>
 
 <figure>
   <img class="chart-img" src="results/charts/07_rolling_40yr_btd_outperformance.png" alt="滚动40年 抄底相对定投的超额收益">
-  <figcaption><b>图 7</b>　滚动 40 年，抄底相对定投的超额收益。只有 1920 年代起始的少数窗口为正，<b>定投在 71.7% 的窗口里胜出</b>。</figcaption>
+  <figcaption><b>图 7</b>　滚动 40 年（1920–1983 起始），抄底相对定投的超额收益。只有 1920 年代起始的少数窗口为正，<b>定投在 71.9% 的窗口里胜出</b>。</figcaption>
 </figure>
 
 <div class="callout highlight">
@@ -154,16 +154,16 @@
 
 <h2>五、最后一击：现实中你不可能精确抄底</h2>
 
-<p>上帝尚且 70% 跑输，何况凡人。如果把每一次买入<strong>仅仅推迟 2 个月</strong>（依然假设你大致知道底部在哪），结果是灾难性的——<strong>96.7% 的窗口跑输定投</strong>。</p>
+<p>上帝尚且 70% 跑输，何况凡人。如果把每一次买入<strong>仅仅推迟 2 个月</strong>（依然假设你大致知道底部在哪），结果是灾难性的——<strong>96.9% 的窗口跑输定投</strong>。</p>
 
 <table>
   <thead><tr><th>策略</th><th>跑赢定投的窗口比例</th><th>跑输定投</th></tr></thead>
   <tbody>
-    <tr><td>上帝抄底（完美底部）</td><td class="lose">28.3%</td><td>71.7%</td></tr>
-    <tr><td>延迟 1 个月</td><td class="lose">26.7%</td><td>73.3%</td></tr>
-    <tr><td>延迟 2 个月</td><td class="lose">3.3%</td><td>96.7%</td></tr>
+    <tr><td>上帝抄底（完美底部）</td><td class="lose">28.1%</td><td>71.9%</td></tr>
+    <tr><td>延迟 1 个月</td><td class="lose">25.0%</td><td>75.0%</td></tr>
+    <tr><td>延迟 2 个月</td><td class="lose">3.1%</td><td>96.9%</td></tr>
     <tr><td>延迟 3 个月</td><td class="lose">0.0%</td><td>100.0%</td></tr>
-    <tr><td>延迟 6 个月</td><td class="lose">1.7%</td><td>98.3%</td></tr>
+    <tr><td>延迟 6 个月</td><td class="lose">1.6%</td><td>98.4%</td></tr>
   </tbody>
 </table>
 
@@ -181,7 +181,7 @@
 
 <figure>
   <img class="chart-img" src="results/charts/11_btd_outperformance_histogram.png" alt="抄底超额收益分布直方图">
-  <figcaption><b>图 11</b>　60 个窗口中，上帝抄底相对定投超额收益的分布（多数为负）。</figcaption>
+  <figcaption><b>图 11</b>　64 个窗口中，上帝抄底相对定投超额收益的分布（多数为负）。</figcaption>
 </figure>
 
 <figure>
@@ -190,7 +190,7 @@
 </figure>
 
 <footer>
-  本页为 Nick Maggiulli 原文的中文复刻与数据重算，结论与原文一致：上帝抄底在 <b>71.7%</b> 的滚动 40 年窗口跑输定投，延迟 2 个月则升至 <b>96.7%</b>。
+  本页为 Nick Maggiulli 原文的中文复刻与数据重算，结论与原文一致：上帝抄底在 <b>71.9%</b> 的滚动 40 年窗口（1920–1983 起始，共 64 个）跑输定投，延迟 2 个月则升至 <b>96.9%</b>。
   数据：Shiller 实际标普总回报（1871–2023）。所有图表由 <span class="kbd">python main.py</span> 生成于 <code>results/charts/</code>。
 </footer>
 </div>
