@@ -3,6 +3,11 @@
 A clean Python reproduction (and extension) of Nick Maggiulli's *Of Dollars And
 Data* post **["Even God Couldn't Beat Dollar-Cost Averaging"](https://ofdollarsanddata.com/even-god-couldnt-beat-dollar-cost-averaging/)**.
 
+📊 **Live report (Chinese):** https://cozec.github.io/if_god_buy_dip/ —
+a full illustrated walkthrough ([report_zh.html](report_zh.html), also exported to
+[report_zh.docx](report_zh.docx)). *To enable: repo Settings → Pages → Deploy from
+a branch → `main` / `/ (root)`.*
+
 It builds a real (inflation-adjusted) total-return index for the U.S. stock
 market from Robert Shiller's monthly dataset, then backtests three strategies
 over rolling 40-year windows:
